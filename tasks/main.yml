@@ -1,0 +1,29 @@
+---
+- name: making directories
+  file:
+    path: "{{ private_bin_directory }}/data"
+    state: directory
+    mode: 0750
+    owner: "{{ private_bin_user }}"
+    group: "{{ private_bin_group }}"
+
+- name: making directories
+  file:
+    path: "{{ private_bin_directory }}/cfg"
+    state: directory
+    mode: 0750
+    owner: "{{ private_bin_user }}"
+    group: "{{ private_bin_group }}"
+
+- name: Setting up config file
+  template:
+    src: templates/conf.php.j2
+    dest: "{{ private_bin_directory }}/cfg/conf.php"
+    owner: "{{ private_bin_user }}"
+    group: "{{ private_bin_group }}"
+    mode: 0640
+
+- name: pull and run privatebin docker
+  become: "true"
+  become_user: "root"
+  shell: "/usr/bin/docker run -d --restart='always' --read-only -p 8080:8080 -v {{ private_bin_directory }}/cfg/conf.php:{{ private_bin_directory }}/cfg/conf.php:ro -v {{ private_bin_directory }}/data:{{ private_bin_directory }}/data privatebin/nginx-fpm-alpine:{{ private_bin_version }}"
